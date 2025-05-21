@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,12 +13,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const Header = () => {
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toggleSidebar } = useSidebar();
   
   // Helper function to get page title based on current route
   const getPageTitle = () => {
@@ -44,7 +45,7 @@ export const Header = () => {
               variant="ghost"
               size="icon"
               className="mr-2 md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={toggleSidebar}
             >
               <Menu size={24} />
             </Button>
