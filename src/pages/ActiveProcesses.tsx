@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -28,6 +28,7 @@ import {
 import { Fingerprint } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type ProcessType = "delivery" | "return";
 
@@ -78,6 +79,17 @@ const ActiveProcesses = () => {
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
   const [biometricDialogOpen, setBiometricDialogOpen] = useState(false);
   const [biometricVerified, setBiometricVerified] = useState(false);
+  const [showLowStockNotification, setShowLowStockNotification] = useState(true);
+
+  // Auto-dismiss the notification after 10 seconds
+  useEffect(() => {
+    if (showLowStockNotification) {
+      const timer = setTimeout(() => {
+        setShowLowStockNotification(false);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showLowStockNotification]);
 
   const filteredProcesses = processes.filter(
     (process) =>
@@ -185,8 +197,23 @@ const ActiveProcesses = () => {
 
   return (
     <div className="space-y-6">
+      {showLowStockNotification && (
+        <Alert variant="destructive" className="mb-4 bg-red-50 border-red-200">
+          <AlertTitle className="flex items-center gap-2">
+            Alerta de Estoque Baixo
+          </AlertTitle>
+          <AlertDescription>
+            <p className="mb-2">Os seguintes EPIs estão com estoque abaixo do mínimo:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Capacete de Segurança: 3 unidades (mínimo: 5)</li>
+              <li>Protetor Auricular: 4 unidades (mínimo: 5)</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Processos Ativos</h2>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Processos Ativos</h2>
       </div>
 
       <Card className="overflow-hidden">
@@ -196,37 +223,37 @@ const ActiveProcesses = () => {
             Use os filtros abaixo para encontrar processos específicos.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex flex-col gap-4">
+            <div className="w-full">
               <Input
                 placeholder="Buscar por colaborador ou EPI..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <Button
                 variant={filterType === "all" ? "default" : "outline"}
                 onClick={() => setFilterType("all")}
-                className={filterType === "all" ? "bg-barcelos hover:bg-barcelos-dark" : ""}
-                size={isMobile ? "sm" : "default"}
+                className={`${filterType === "all" ? "bg-barcelos hover:bg-barcelos-dark" : ""} text-xs md:text-sm`}
+                size="sm"
               >
                 Todos
               </Button>
               <Button
                 variant={filterType === "delivery" ? "default" : "outline"}
                 onClick={() => setFilterType("delivery")}
-                className={filterType === "delivery" ? "bg-barcelos hover:bg-barcelos-dark" : ""}
-                size={isMobile ? "sm" : "default"}
+                className={`${filterType === "delivery" ? "bg-barcelos hover:bg-barcelos-dark" : ""} text-xs md:text-sm`}
+                size="sm"
               >
                 Entregas
               </Button>
               <Button
                 variant={filterType === "return" ? "default" : "outline"}
                 onClick={() => setFilterType("return")}
-                className={filterType === "return" ? "bg-barcelos hover:bg-barcelos-dark" : ""}
-                size={isMobile ? "sm" : "default"}
+                className={`${filterType === "return" ? "bg-barcelos hover:bg-barcelos-dark" : ""} text-xs md:text-sm`}
+                size="sm"
               >
                 Devoluções
               </Button>
@@ -335,7 +362,7 @@ const ActiveProcesses = () => {
       </Card>
 
       <Dialog open={biometricDialogOpen} onOpenChange={setBiometricDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-w-[95%] p-4 md:p-6">
           <DialogHeader>
             <DialogTitle>Verificação Biométrica</DialogTitle>
             <DialogDescription>

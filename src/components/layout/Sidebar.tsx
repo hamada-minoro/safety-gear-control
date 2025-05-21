@@ -22,9 +22,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 // Mock data for low stock notifications
 const lowStockEpis = [
-  { id: "1", name: "Capacete de Segurança", current: 8, min: 5 },
+  { id: "1", name: "Capacete de Segurança", current: 3, min: 5 },
   { id: "2", name: "Luvas de Proteção", current: 12, min: 10 },
-  { id: "3", name: "Protetor Auricular", current: 6, min: 5 },
+  { id: "3", name: "Protetor Auricular", current: 4, min: 5 },
 ];
 
 export const Sidebar = () => {

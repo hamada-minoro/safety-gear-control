@@ -28,19 +28,12 @@ import { FileText, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-type ProcessType = "delivery" | "return";
 type Report = {
   id: string;
-  type: ProcessType;
   employeeId: string;
   employeeName: string;
   completedDate: string;
   fileName: string;
-  items: {
-    epiId: string;
-    epiName: string;
-    quantity: number;
-  }[];
 };
 
 const Reports = () => {
@@ -48,31 +41,21 @@ const Reports = () => {
   const [reports, setReports] = useState<Report[]>([
     {
       id: "1",
-      type: "delivery",
       employeeId: "1",
       employeeName: "João Silva",
       completedDate: "2025-05-20",
       fileName: "entrega_epi_123456.pdf",
-      items: [
-        { epiId: "1", epiName: "Capacete de Segurança", quantity: 1 },
-        { epiId: "2", epiName: "Luvas de Proteção", quantity: 2 },
-      ],
     },
     {
       id: "2",
-      type: "delivery",
       employeeId: "2",
       employeeName: "Maria Oliveira",
       completedDate: "2025-05-21",
       fileName: "entrega_epi_789012.pdf",
-      items: [
-        { epiId: "3", epiName: "Óculos de Segurança", quantity: 1 },
-      ],
     },
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<"all" | ProcessType>("all");
   const [dateFilter, setDateFilter] = useState<"all" | "recent" | "custom">("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -85,11 +68,6 @@ const Reports = () => {
   ];
 
   const filteredReports = reports.filter((report) => {
-    // Filter by type
-    if (filterType !== "all" && report.type !== filterType) {
-      return false;
-    }
-    
     // Filter by date
     if (dateFilter === "recent") {
       const thirtyDaysAgo = new Date();
@@ -114,10 +92,7 @@ const Reports = () => {
     // Filter by search term
     if (
       searchTerm &&
-      !report.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !report.items.some((item) =>
-        item.epiName.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      !report.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
     ) {
       return false;
     }
@@ -146,10 +121,37 @@ const Reports = () => {
     }, 1000);
   };
 
+  // Mobile card view for reports
+  const ReportCard = ({ report }: { report: Report }) => (
+    <div className="bg-white border rounded-lg shadow-sm p-4 mb-4">
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-semibold text-lg">{report.employeeName}</h3>
+      </div>
+      <div className="text-sm mb-2">
+        <p className="text-muted-foreground">
+          Data: {new Date(report.completedDate).toLocaleDateString("pt-BR")}
+        </p>
+        <div className="flex items-center text-muted-foreground mt-1">
+          <FileText className="h-4 w-4 mr-1" />
+          {report.fileName}
+        </div>
+      </div>
+      <Button 
+        size="sm" 
+        variant="outline"
+        className="w-full mt-2"
+        onClick={() => downloadReport(report.id)}
+      >
+        <Download className="h-4 w-4 mr-1" />
+        Baixar Relatório
+      </Button>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Relatórios</h2>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Relatórios</h2>
       </div>
 
       <Card className="overflow-hidden">
@@ -159,8 +161,8 @@ const Reports = () => {
             Use os filtros abaixo para encontrar relatórios específicos.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <CardContent className="p-4 md:p-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div>
               <label className="text-sm font-medium mb-1 block">Busca</label>
               <Input
@@ -168,24 +170,6 @@ const Reports = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Tipo</label>
-              <Select
-                value={filterType}
-                onValueChange={(value) =>
-                  setFilterType(value as "all" | ProcessType)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="delivery">Entrega</SelectItem>
-                  <SelectItem value="return">Devolução</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">
@@ -264,53 +248,71 @@ const Reports = () => {
             Lista de comprovantes de entrega e devolução de EPIs.
           </CardDescription>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Colaborador</TableHead>
-                <TableHead>Data de Conclusão</TableHead>
-                <TableHead>Arquivo</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredReports.length > 0 ? (
-                filteredReports.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell className="font-medium">
-                      {report.employeeName}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(report.completedDate).toLocaleDateString("pt-BR")}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center text-muted-foreground">
-                        <FileText className="h-4 w-4 mr-1" />
-                        {report.fileName}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => downloadReport(report.id)}
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        Baixar
-                      </Button>
-                    </TableCell>
+        <CardContent>
+          {isMobile ? (
+            // Mobile view - Cards
+            filteredReports.length > 0 ? (
+              <div>
+                {filteredReports.map((report) => (
+                  <ReportCard key={report.id} report={report} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                Nenhum relatório encontrado com os filtros atuais.
+              </div>
+            )
+          ) : (
+            // Desktop view - Table
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Colaborador</TableHead>
+                    <TableHead>Data de Conclusão</TableHead>
+                    <TableHead>Arquivo</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
-                    Nenhum relatório encontrado com os filtros atuais.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredReports.length > 0 ? (
+                    filteredReports.map((report) => (
+                      <TableRow key={report.id}>
+                        <TableCell className="font-medium">
+                          {report.employeeName}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(report.completedDate).toLocaleDateString("pt-BR")}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center text-muted-foreground">
+                            <FileText className="h-4 w-4 mr-1" />
+                            {report.fileName}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadReport(report.id)}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Baixar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8">
+                        Nenhum relatório encontrado com os filtros atuais.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

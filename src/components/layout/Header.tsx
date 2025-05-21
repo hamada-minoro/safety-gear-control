@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,16 +10,47 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Menu } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 export const Header = () => {
   const { user, logout } = useAuth();
+  const isMobile = useIsMobile();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Helper function to get page title based on current route
+  const getPageTitle = () => {
+    const path = location.pathname;
+    
+    if (path.includes("/admin/companies")) return "Empresas";
+    if (path.includes("/employees")) return "Colaboradores";
+    if (path.includes("/epi")) return "EPIs";
+    if (path.includes("/processes")) return "Processos";
+    if (path.includes("/active-processes")) return "Processos Ativos";
+    if (path.includes("/reports")) return "Relatórios";
+    if (path.includes("/dashboard")) return "Dashboard";
+    
+    return "Sistema de Gestão de EPI";
+  };
 
   return (
     <header className="border-b bg-card">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">
-            Sistema de Gestão de EPI
+        <div className="flex items-center">
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-2 md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <Menu size={24} />
+            </Button>
+          )}
+          <h1 className={`font-bold text-foreground ${isMobile ? "text-lg" : "text-xl"}`}>
+            {isMobile ? getPageTitle() : "Sistema de Gestão de EPI"}
           </h1>
         </div>
         <div className="flex items-center gap-4">
@@ -29,7 +60,7 @@ export const Header = () => {
                 variant="outline"
                 className="flex items-center gap-2"
               >
-                <span className="hidden md:inline-block">{user?.name}</span>
+                {!isMobile && <span className="hidden md:inline-block">{user?.name}</span>}
                 <div className="h-8 w-8 rounded-full bg-barcelos flex items-center justify-center text-white">
                   {user?.name ? user.name[0].toUpperCase() : "U"}
                 </div>
