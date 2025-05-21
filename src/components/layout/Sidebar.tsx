@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, ChartBar, FileText, Dashboard, Fingerprint } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChartBar, FileText, LayoutDashboard, Fingerprint } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Sidebar = () => {
@@ -56,7 +56,7 @@ export const Sidebar = () => {
           {isAdmin && (
             <NavItem
               to="/admin/companies"
-              icon={<Dashboard size={20} />}
+              icon={<LayoutDashboard size={20} />}
               label="Empresas"
               collapsed={collapsed}
             />
