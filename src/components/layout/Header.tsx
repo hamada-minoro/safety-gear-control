@@ -13,13 +13,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import { useSidebar } from "@/components/ui/sidebar";
 
-export const Header = () => {
+interface HeaderProps {
+  toggleSidebar: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { toggleSidebar } = useSidebar();
   
   // Helper function to get page title based on current route
   const getPageTitle = () => {
