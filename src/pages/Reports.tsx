@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { FileText, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type ProcessType = "delivery" | "return";
 type Report = {
@@ -43,6 +44,7 @@ type Report = {
 };
 
 const Reports = () => {
+  const isMobile = useIsMobile();
   const [reports, setReports] = useState<Report[]>([
     {
       id: "1",
@@ -162,7 +164,7 @@ const Reports = () => {
             <div>
               <label className="text-sm font-medium mb-1 block">Busca</label>
               <Input
-                placeholder="Nome do colaborador ou EPI..."
+                placeholder="Nome do colaborador..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -262,14 +264,12 @@ const Reports = () => {
             Lista de comprovantes de entrega e devolução de EPIs.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tipo</TableHead>
                 <TableHead>Colaborador</TableHead>
                 <TableHead>Data de Conclusão</TableHead>
-                <TableHead>EPIs</TableHead>
                 <TableHead>Arquivo</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
@@ -278,29 +278,11 @@ const Reports = () => {
               {filteredReports.length > 0 ? (
                 filteredReports.map((report) => (
                   <TableRow key={report.id}>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          report.type === "delivery"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        {report.type === "delivery" ? "Entrega" : "Devolução"}
-                      </span>
-                    </TableCell>
                     <TableCell className="font-medium">
                       {report.employeeName}
                     </TableCell>
                     <TableCell>
                       {new Date(report.completedDate).toLocaleDateString("pt-BR")}
-                    </TableCell>
-                    <TableCell>
-                      {report.items.map((item) => (
-                        <div key={item.epiId}>
-                          {item.epiName} ({item.quantity})
-                        </div>
-                      ))}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center text-muted-foreground">
@@ -322,7 +304,7 @@ const Reports = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={4} className="text-center py-8">
                     Nenhum relatório encontrado com os filtros atuais.
                   </TableCell>
                 </TableRow>

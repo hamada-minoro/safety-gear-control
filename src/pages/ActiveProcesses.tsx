@@ -6,7 +6,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { Fingerprint } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type ProcessType = "delivery" | "return";
 
@@ -46,6 +46,7 @@ type Process = {
 };
 
 const ActiveProcesses = () => {
+  const isMobile = useIsMobile();
   const [processes, setProcesses] = useState<Process[]>([
     {
       id: "1",
@@ -137,6 +138,51 @@ const ActiveProcesses = () => {
     }
   };
 
+  // Mobile card view for processes
+  const ProcessCard = ({ process }: { process: Process }) => (
+    <div 
+      className="bg-white border rounded-lg shadow-sm p-4 mb-4 cursor-pointer hover:shadow"
+      onClick={() => handleProcessSelect(process)}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-semibold text-lg">{process.employeeName}</h3>
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            process.type === "delivery"
+              ? "bg-green-100 text-green-800"
+              : "bg-blue-100 text-blue-800"
+          }`}
+        >
+          {process.type === "delivery" ? "Entrega" : "Devolução"}
+        </span>
+      </div>
+      <div className="text-sm mb-2">
+        <p className="text-muted-foreground">
+          Data: {new Date(process.scheduledDate).toLocaleDateString("pt-BR")}
+        </p>
+      </div>
+      <div className="space-y-1 mb-3">
+        <p className="text-sm font-medium">EPIs:</p>
+        {process.items.map((item) => (
+          <p key={item.epiId} className="text-sm ml-2">
+            • {item.epiName} ({item.quantity})
+          </p>
+        ))}
+      </div>
+      <Button 
+        size="sm" 
+        className="w-full bg-barcelos hover:bg-barcelos-dark"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleProcessSelect(process);
+        }}
+      >
+        <Fingerprint className="mr-1 h-4 w-4" />
+        Finalizar Processo
+      </Button>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -164,6 +210,7 @@ const ActiveProcesses = () => {
                 variant={filterType === "all" ? "default" : "outline"}
                 onClick={() => setFilterType("all")}
                 className={filterType === "all" ? "bg-barcelos hover:bg-barcelos-dark" : ""}
+                size={isMobile ? "sm" : "default"}
               >
                 Todos
               </Button>
@@ -171,6 +218,7 @@ const ActiveProcesses = () => {
                 variant={filterType === "delivery" ? "default" : "outline"}
                 onClick={() => setFilterType("delivery")}
                 className={filterType === "delivery" ? "bg-barcelos hover:bg-barcelos-dark" : ""}
+                size={isMobile ? "sm" : "default"}
               >
                 Entregas
               </Button>
@@ -178,6 +226,7 @@ const ActiveProcesses = () => {
                 variant={filterType === "return" ? "default" : "outline"}
                 onClick={() => setFilterType("return")}
                 className={filterType === "return" ? "bg-barcelos hover:bg-barcelos-dark" : ""}
+                size={isMobile ? "sm" : "default"}
               >
                 Devoluções
               </Button>
@@ -190,78 +239,98 @@ const ActiveProcesses = () => {
         <CardHeader>
           <CardTitle>Processos Ativos</CardTitle>
           <CardDescription>
-            Clique em um processo para iniciar a verificação biométrica e concluí-lo.
+            {isMobile 
+              ? "Toque em um processo para iniciar a verificação biométrica." 
+              : "Clique em um processo para iniciar a verificação biométrica e concluí-lo."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Colaborador</TableHead>
-                <TableHead>Data Agendada</TableHead>
-                <TableHead>EPIs</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProcesses.length > 0 ? (
-                filteredProcesses.map((process) => (
-                  <TableRow
-                    key={process.id}
-                    className="hover:bg-muted/50 cursor-pointer"
-                    onClick={() => handleProcessSelect(process)}
-                  >
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          process.type === "delivery"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        {process.type === "delivery" ? "Entrega" : "Devolução"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {process.employeeName}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(process.scheduledDate).toLocaleDateString(
-                        "pt-BR"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {process.items.map((item) => (
-                        <div key={item.epiId}>
-                          {item.epiName} ({item.quantity})
-                        </div>
-                      ))}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        className="bg-barcelos hover:bg-barcelos-dark"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProcessSelect(process);
-                        }}
-                      >
-                        <Fingerprint className="mr-1 h-4 w-4" />
-                        Finalizar
-                      </Button>
-                    </TableCell>
+          {isMobile ? (
+            // Mobile view - Cards
+            filteredProcesses.length > 0 ? (
+              <div>
+                {filteredProcesses.map((process) => (
+                  <ProcessCard key={process.id} process={process} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                Nenhum processo ativo encontrado com os filtros atuais.
+              </div>
+            )
+          ) : (
+            // Desktop view - Table
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Colaborador</TableHead>
+                    <TableHead>Data Agendada</TableHead>
+                    <TableHead>EPIs</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    Nenhum processo ativo encontrado com os filtros atuais.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredProcesses.length > 0 ? (
+                    filteredProcesses.map((process) => (
+                      <TableRow
+                        key={process.id}
+                        className="hover:bg-muted/50 cursor-pointer"
+                        onClick={() => handleProcessSelect(process)}
+                      >
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              process.type === "delivery"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {process.type === "delivery" ? "Entrega" : "Devolução"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {process.employeeName}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(process.scheduledDate).toLocaleDateString(
+                            "pt-BR"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {process.items.map((item) => (
+                            <div key={item.epiId}>
+                              {item.epiName} ({item.quantity})
+                            </div>
+                          ))}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            className="bg-barcelos hover:bg-barcelos-dark"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProcessSelect(process);
+                            }}
+                          >
+                            <Fingerprint className="mr-1 h-4 w-4" />
+                            Finalizar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        Nenhum processo ativo encontrado com os filtros atuais.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 

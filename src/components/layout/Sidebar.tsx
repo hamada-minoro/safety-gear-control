@@ -3,23 +3,49 @@ import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, ChartBar, FileText, LayoutDashboard, Fingerprint } from "lucide-react";
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  ChartBar, 
+  FileText, 
+  LayoutDashboard, 
+  Fingerprint, 
+  BellRing 
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Mock data for low stock notifications
+const lowStockEpis = [
+  { id: "1", name: "Capacete de Segurança", current: 8, min: 5 },
+  { id: "2", name: "Luvas de Proteção", current: 12, min: 10 },
+  { id: "3", name: "Protetor Auricular", current: 6, min: 5 },
+];
 
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const isAdmin = user?.role === "admin";
   const isManager = user?.role === "manager";
 
   const toggleSidebar = () => setCollapsed(!collapsed);
 
+  // Filter to only show items at or below minimum quantity
+  const lowStockAlerts = lowStockEpis.filter(item => item.current <= item.min);
+  const hasAlerts = lowStockAlerts.length > 0;
+
   return (
     <aside
       className={cn(
         "bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border transition-all duration-300 ease-in-out",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-16" : isMobile ? "w-full" : "w-64"
       )}
     >
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
@@ -42,14 +68,16 @@ export const Sidebar = () => {
             />
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-        >
-          {collapsed ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
-        </Button>
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            {collapsed ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
+          </Button>
+        )}
       </div>
       <div className="flex-1 overflow-auto py-2">
         <nav className="space-y-1 px-2">
@@ -103,6 +131,78 @@ export const Sidebar = () => {
           )}
         </nav>
       </div>
+      {isManager && (
+        <div className="px-4 py-2 border-t border-sidebar-border">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className={cn(
+                  "w-full justify-start",
+                  hasAlerts ? "text-red-500" : "text-sidebar-foreground"
+                )}
+              >
+                <BellRing size={18} className="mr-2" />
+                {!collapsed && (
+                  <>
+                    <span>Notificações</span>
+                    {hasAlerts && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {lowStockAlerts.length}
+                      </span>
+                    )}
+                  </>
+                )}
+                {collapsed && hasAlerts && (
+                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {lowStockAlerts.length}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align={collapsed ? "center" : "start"}>
+              <div className="space-y-4">
+                <div className="font-medium">Alertas de Estoque</div>
+                {hasAlerts ? (
+                  <div className="space-y-2">
+                    {lowStockAlerts.map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="flex items-center justify-between p-2 bg-red-50 border border-red-100 rounded-md"
+                      >
+                        <div>
+                          <div className="font-semibold">{item.name}</div>
+                          <div className="text-xs">Estoque: {item.current} / Mínimo: {item.min}</div>
+                        </div>
+                        <NavLink to="/epi">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-xs"
+                          >
+                            Ver
+                          </Button>
+                        </NavLink>
+                      </div>
+                    ))}
+                    <NavLink to="/dashboard" className="w-full block">
+                      <Button 
+                        variant="outline" 
+                        className="w-full mt-2 bg-barcelos text-white hover:bg-barcelos-dark"
+                      >
+                        Ver todos no Dashboard
+                      </Button>
+                    </NavLink>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">Não há alertas de estoque no momento.</div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
       <div className="p-4 border-t border-sidebar-border">
         {!collapsed ? (
           <div className="flex items-center text-xs text-sidebar-foreground/80">

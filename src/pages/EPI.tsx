@@ -38,6 +38,7 @@ type EPI = {
   purchaseDate: string;
   ca: string;
   expirationDate: string;
+  price: number;
 };
 
 const EPIPage = () => {
@@ -51,6 +52,7 @@ const EPIPage = () => {
       purchaseDate: "2025-01-15",
       ca: "12345",
       expirationDate: "2026-01-15",
+      price: 45.90,
     },
     {
       id: "2",
@@ -61,6 +63,7 @@ const EPIPage = () => {
       purchaseDate: "2025-02-20",
       ca: "67890",
       expirationDate: "2025-08-20",
+      price: 12.50,
     },
   ]);
 
@@ -71,6 +74,7 @@ const EPIPage = () => {
     minQuantity: 0,
     purchaseDate: "",
     ca: "",
+    price: 0,
   });
 
   const [open, setOpen] = useState(false);
@@ -100,6 +104,7 @@ const EPIPage = () => {
       minQuantity: 0,
       purchaseDate: "",
       ca: "",
+      price: 0,
     });
     
     setOpen(false);
@@ -210,6 +215,22 @@ const EPIPage = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="price" className="text-right">
+                  Valor (R$)
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  value={newEPI.price}
+                  onChange={(e) =>
+                    setNewEPI({ ...newEPI, price: Number(e.target.value) })
+                  }
+                  placeholder="0.00"
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="purchaseDate" className="text-right">
                   Data da Compra
                 </Label>
@@ -265,42 +286,46 @@ const EPIPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>CA</TableHead>
-                <TableHead>Quantidade</TableHead>
-                <TableHead>Mín. Qtd.</TableHead>
-                <TableHead>Data da Compra</TableHead>
-                <TableHead>Validade</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {epis.map((epi) => (
-                <TableRow key={epi.id}>
-                  <TableCell className="font-medium">{epi.name}</TableCell>
-                  <TableCell>{epi.ca}</TableCell>
-                  <TableCell>
-                    <span className={epi.quantity <= epi.minQuantity ? "text-red-600 font-medium" : ""}>
-                      {epi.quantity}
-                    </span>
-                  </TableCell>
-                  <TableCell>{epi.minQuantity}</TableCell>
-                  <TableCell>{formatDate(epi.purchaseDate)}</TableCell>
-                  <TableCell>{formatDate(epi.expirationDate)}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
-                        Editar
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>CA</TableHead>
+                  <TableHead>Quantidade</TableHead>
+                  <TableHead>Mín. Qtd.</TableHead>
+                  <TableHead>Valor (R$)</TableHead>
+                  <TableHead>Data da Compra</TableHead>
+                  <TableHead>Validade</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {epis.map((epi) => (
+                  <TableRow key={epi.id}>
+                    <TableCell className="font-medium">{epi.name}</TableCell>
+                    <TableCell>{epi.ca}</TableCell>
+                    <TableCell>
+                      <span className={epi.quantity <= epi.minQuantity ? "text-red-600 font-medium" : ""}>
+                        {epi.quantity}
+                      </span>
+                    </TableCell>
+                    <TableCell>{epi.minQuantity}</TableCell>
+                    <TableCell>R$ {epi.price.toFixed(2)}</TableCell>
+                    <TableCell>{formatDate(epi.purchaseDate)}</TableCell>
+                    <TableCell>{formatDate(epi.expirationDate)}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">
+                          Editar
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
