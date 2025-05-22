@@ -22,19 +22,19 @@ export const AppLayout = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen">
+      <div className="flex h-screen w-full">
         {isMobile ? (
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetContent side="left" className="p-0 w-[85%] max-w-[300px]">
+            <SheetContent side="left" className="p-0 w-[85%] max-w-[300px] h-full">
               <Sidebar />
             </SheetContent>
           </Sheet>
         ) : (
           <Sidebar />
         )}
-        <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex flex-col flex-1 overflow-hidden w-full">
           <Header toggleSidebar={() => setSidebarOpen(prev => !prev)} />
-          <main className="flex-1 overflow-auto p-3 md:p-6">
+          <main className="flex-1 overflow-auto p-3 md:p-6 w-full">
             <Outlet />
           </main>
         </div>
